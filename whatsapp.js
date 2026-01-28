@@ -46,6 +46,34 @@ class WhatsAppBot {
           '--disable-features=IsolateOrigins,site-per-process'
         ];
 
+        // Detectar Chrome/Chromium do sistema (para Discloud)
+        let chromeExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        if (!chromeExecutablePath) {
+          // Tentar encontrar Chrome/Chromium em caminhos comuns
+          const possiblePaths = [
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+            '/usr/bin/google-chrome',
+            '/usr/bin/google-chrome-stable',
+            '/snap/bin/chromium',
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+          ];
+          
+          for (const possiblePath of possiblePaths) {
+            try {
+              if (fs.existsSync(possiblePath)) {
+                chromeExecutablePath = possiblePath;
+                console.log(`✅ Chrome encontrado em: ${chromeExecutablePath}`);
+                break;
+              }
+            } catch (e) {
+              // Continuar procurando
+            }
+          }
+        }
+
         // Adicionar perfil do usuário se configurado
         if (whatsappProfile) {
           const profilePath = path.isAbsolute(whatsappProfile) 
@@ -72,8 +100,8 @@ class WhatsAppBot {
             timeout: 90000, // Timeout de 90 segundos
             ignoreHTTPSErrors: true,
             waitForInitialPage: false, // Não esperar página inicial para evitar problemas
-            // Configurações para Discloud - não baixar Chrome
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+            // Configurações para Discloud - usar Chrome do sistema
+            executablePath: chromeExecutablePath
           },
           webVersionCache: {
             type: 'remote',
@@ -219,6 +247,32 @@ class WhatsAppBot {
               puppeteerArgsRetry.push(`--user-data-dir=${profilePath}`);
             }
 
+            // Detectar Chrome/Chromium do sistema (para Discloud)
+            let chromeExecutablePathRetry = process.env.PUPPETEER_EXECUTABLE_PATH;
+            if (!chromeExecutablePathRetry) {
+              const possiblePaths = [
+                '/usr/bin/chromium',
+                '/usr/bin/chromium-browser',
+                '/usr/bin/google-chrome',
+                '/usr/bin/google-chrome-stable',
+                '/snap/bin/chromium',
+                '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+                'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+              ];
+              
+              for (const possiblePath of possiblePaths) {
+                try {
+                  if (fs.existsSync(possiblePath)) {
+                    chromeExecutablePathRetry = possiblePath;
+                    break;
+                  }
+                } catch (e) {
+                  // Continuar procurando
+                }
+              }
+            }
+
             this.client = new Client({
               authStrategy: new LocalAuth({
                 dataPath: './.wwebjs_auth'
@@ -229,8 +283,8 @@ class WhatsAppBot {
                 timeout: 90000,
                 ignoreHTTPSErrors: true,
                 waitForInitialPage: false,
-                // Configurações para Discloud - não baixar Chrome
-                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+                // Configurações para Discloud - usar Chrome do sistema
+                executablePath: chromeExecutablePathRetry
               },
               webVersionCache: {
                 type: 'remote',

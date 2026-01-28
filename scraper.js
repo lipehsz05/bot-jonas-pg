@@ -66,11 +66,39 @@ class SiteScraper {
         console.log(`🔐 Usando perfil do Chrome para Scraper: ${profilePath}`);
       }
 
+      // Detectar Chrome/Chromium do sistema (para Discloud)
+      let chromeExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      if (!chromeExecutablePath) {
+        // Tentar encontrar Chrome/Chromium em caminhos comuns
+        const possiblePaths = [
+          '/usr/bin/chromium',
+          '/usr/bin/chromium-browser',
+          '/usr/bin/google-chrome',
+          '/usr/bin/google-chrome-stable',
+          '/snap/bin/chromium',
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+          'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+          'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+        ];
+        
+        for (const possiblePath of possiblePaths) {
+          try {
+            if (fs.existsSync(possiblePath)) {
+              chromeExecutablePath = possiblePath;
+              console.log(`✅ Chrome encontrado em: ${chromeExecutablePath}`);
+              break;
+            }
+          } catch (e) {
+            // Continuar procurando
+          }
+        }
+      }
+
       this.browser = await puppeteer.launch({
         headless: true, // Modo headless para Discloud
         args: puppeteerArgs,
-        // Configurações para Discloud - usar Chrome do sistema se disponível
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+        // Configurações para Discloud - usar Chrome do sistema
+        executablePath: chromeExecutablePath
       });
       this.page = await this.browser.newPage();
 
