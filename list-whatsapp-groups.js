@@ -2,6 +2,7 @@ import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 import qrcode from 'qrcode-terminal';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -15,16 +16,47 @@ class WhatsAppGroupLister {
   async init() {
     console.log('📱 Inicializando WhatsApp...\n');
     
+    // Detectar Chrome/Chromium do sistema (para Docker)
+    let chromeExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    if (!chromeExecutablePath) {
+      const possiblePaths = [
+        '/usr/bin/chromium', // Caminho padrão no Docker
+        '/usr/bin/chromium-browser',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable'
+      ];
+      
+      for (const possiblePath of possiblePaths) {
+        try {
+          if (fs.existsSync(possiblePath)) {
+            chromeExecutablePath = possiblePath;
+            console.log(`✅ Chrome encontrado em: ${chromeExecutablePath}`);
+            break;
+          }
+        } catch (e) {
+          // Continuar procurando
+        }
+      }
+      
+      // Se não encontrou, usar /usr/bin/chromium como padrão
+      if (!chromeExecutablePath) {
+        chromeExecutablePath = '/usr/bin/chromium';
+        console.log(`⚠️ Chrome não encontrado nos caminhos padrão. Usando: ${chromeExecutablePath}`);
+      }
+    }
+    
     this.client = new Client({
       authStrategy: new LocalAuth({
         dataPath: './.wwebjs_auth'
       }),
       puppeteer: {
         headless: true,
+        executablePath: chromeExecutablePath,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage'
+          '--disable-dev-shm-usage',
+          '--disable-gpu'
         ]
       }
     });
