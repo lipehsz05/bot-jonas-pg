@@ -1,0 +1,31 @@
+{
+  "name": "bot-jonas-sinais",
+  "version": "1.0.0",
+  "description": "Bot para enviar sinais de slots do site reidoslotsinais.com para WhatsApp e Telegram",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start-bot": "bash start-bot.sh",
+    "dev": "node --watch main.js",
+    "list-groups": "node list-whatsapp-groups.js",
+    "fix-telegram": "node delete-telegram-webhook.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "telegram",
+    "bot",
+    "sinais",
+    "slots"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^21.6.1",
+    "whatsapp-web.js": "^1.23.0",
+    "telegraf": "^4.15.4",
+    "dotenv": "^16.3.1",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
+
