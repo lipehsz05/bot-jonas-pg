@@ -71,7 +71,9 @@ class WhatsAppBot {
             args: puppeteerArgs,
             timeout: 90000, // Timeout de 90 segundos
             ignoreHTTPSErrors: true,
-            waitForInitialPage: false // Não esperar página inicial para evitar problemas
+            waitForInitialPage: false, // Não esperar página inicial para evitar problemas
+            // Configurações para Discloud - não baixar Chrome
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
           },
           webVersionCache: {
             type: 'remote',
@@ -226,7 +228,9 @@ class WhatsAppBot {
                 args: puppeteerArgsRetry,
                 timeout: 90000,
                 ignoreHTTPSErrors: true,
-                waitForInitialPage: false
+                waitForInitialPage: false,
+                // Configurações para Discloud - não baixar Chrome
+                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
               },
               webVersionCache: {
                 type: 'remote',

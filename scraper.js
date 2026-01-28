@@ -67,8 +67,10 @@ class SiteScraper {
       }
 
       this.browser = await puppeteer.launch({
-        headless: "new", // Usar novo modo headless
-        args: puppeteerArgs
+        headless: true, // Modo headless para Discloud
+        args: puppeteerArgs,
+        // Configurações para Discloud - usar Chrome do sistema se disponível
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
       });
       this.page = await this.browser.newPage();
 
