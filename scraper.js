@@ -67,11 +67,12 @@ class SiteScraper {
       }
 
       // Detectar Chrome/Chromium do sistema (para Discloud)
+      // Priorizar caminho padrão do Chromium instalado via APT=puppeteer
       let chromeExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
       if (!chromeExecutablePath) {
-        // Tentar encontrar Chrome/Chromium em caminhos comuns
+        // Caminhos padrão (priorizar /usr/bin/chromium que é instalado via APT=puppeteer)
         const possiblePaths = [
-          '/usr/bin/chromium',
+          '/usr/bin/chromium', // Caminho padrão na Discloud com APT=puppeteer
           '/usr/bin/chromium-browser',
           '/usr/bin/google-chrome',
           '/usr/bin/google-chrome-stable',
@@ -92,13 +93,20 @@ class SiteScraper {
             // Continuar procurando
           }
         }
+        
+        // Se não encontrou, usar /usr/bin/chromium como padrão (instalado via APT=puppeteer)
+        if (!chromeExecutablePath) {
+          chromeExecutablePath = '/usr/bin/chromium';
+          console.log(`⚠️ Chrome não encontrado nos caminhos padrão. Usando: ${chromeExecutablePath}`);
+        }
       }
 
       this.browser = await puppeteer.launch({
         headless: true, // Modo headless para Discloud
         args: puppeteerArgs,
         // Configurações para Discloud - usar Chrome do sistema
-        executablePath: chromeExecutablePath
+        // OBRIGATÓRIO: especificar executablePath para usar Chromium instalado via APT=puppeteer
+        executablePath: chromeExecutablePath || '/usr/bin/chromium'
       });
       this.page = await this.browser.newPage();
 

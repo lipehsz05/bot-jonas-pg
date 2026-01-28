@@ -47,11 +47,12 @@ class WhatsAppBot {
         ];
 
         // Detectar Chrome/Chromium do sistema (para Discloud)
+        // Priorizar caminho padrão do Chromium instalado via APT=puppeteer
         let chromeExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
         if (!chromeExecutablePath) {
-          // Tentar encontrar Chrome/Chromium em caminhos comuns
+          // Caminhos padrão (priorizar /usr/bin/chromium que é instalado via APT=puppeteer)
           const possiblePaths = [
-            '/usr/bin/chromium',
+            '/usr/bin/chromium', // Caminho padrão na Discloud com APT=puppeteer
             '/usr/bin/chromium-browser',
             '/usr/bin/google-chrome',
             '/usr/bin/google-chrome-stable',
@@ -71,6 +72,12 @@ class WhatsAppBot {
             } catch (e) {
               // Continuar procurando
             }
+          }
+          
+          // Se não encontrou, usar /usr/bin/chromium como padrão (instalado via APT=puppeteer)
+          if (!chromeExecutablePath) {
+            chromeExecutablePath = '/usr/bin/chromium';
+            console.log(`⚠️ Chrome não encontrado nos caminhos padrão. Usando: ${chromeExecutablePath}`);
           }
         }
 
@@ -100,8 +107,9 @@ class WhatsAppBot {
             timeout: 90000, // Timeout de 90 segundos
             ignoreHTTPSErrors: true,
             waitForInitialPage: false, // Não esperar página inicial para evitar problemas
-            // Configurações para Discloud - usar Chrome do sistema
-            executablePath: chromeExecutablePath
+            // Configurações para Discloud - usar Chrome do sistema (OBRIGATÓRIO)
+            // O whatsapp-web.js usa puppeteer-core que NÃO baixa Chrome automaticamente
+            executablePath: chromeExecutablePath || '/usr/bin/chromium'
           },
           webVersionCache: {
             type: 'remote',
@@ -251,7 +259,7 @@ class WhatsAppBot {
             let chromeExecutablePathRetry = process.env.PUPPETEER_EXECUTABLE_PATH;
             if (!chromeExecutablePathRetry) {
               const possiblePaths = [
-                '/usr/bin/chromium',
+                '/usr/bin/chromium', // Caminho padrão na Discloud com APT=puppeteer
                 '/usr/bin/chromium-browser',
                 '/usr/bin/google-chrome',
                 '/usr/bin/google-chrome-stable',
@@ -271,6 +279,11 @@ class WhatsAppBot {
                   // Continuar procurando
                 }
               }
+              
+              // Se não encontrou, usar /usr/bin/chromium como padrão
+              if (!chromeExecutablePathRetry) {
+                chromeExecutablePathRetry = '/usr/bin/chromium';
+              }
             }
 
             this.client = new Client({
@@ -284,7 +297,8 @@ class WhatsAppBot {
                 ignoreHTTPSErrors: true,
                 waitForInitialPage: false,
                 // Configurações para Discloud - usar Chrome do sistema
-                executablePath: chromeExecutablePathRetry
+                // OBRIGATÓRIO: especificar executablePath para puppeteer-core (usado pelo whatsapp-web.js)
+                executablePath: chromeExecutablePathRetry || '/usr/bin/chromium'
               },
               webVersionCache: {
                 type: 'remote',
